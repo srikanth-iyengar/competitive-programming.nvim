@@ -8,18 +8,44 @@ function M.focus_main()
   vim.api.nvim_set_current_win(M.main_win)
 end
 
-M.width = 45
+M.width = 43
 
-local input_config = { line=2, col=vim.o.columns-M.width, minwidth=M.width, minheight=13, }
-local output_config = { line=33.5, col=vim.o.columns-M.width, minwidth=M.width, minheight=13 }
-local error_config = { line=33.5, col=vim.o.columns-M.width, minwidth=M.width, minheight=13 }
+local input_config = { line=2, col=vim.o.columns-M.width, minwidth=M.width, minheight=13, maxheight= 13}
+local output_config = { line=33.5, col=vim.o.columns-M.width, minwidth=M.width, minheight=13, maxheight=13 }
+local error_config = { line=33.5, col=vim.o.columns-M.width, minwidth=M.width, minheight=13, maxheight=13}
 
 function M.setup()
+
   if M.active then
     M.show_all()
     return
   end
+
+  M.width = 43
+
+  input_config.col = vim.o.columns-M.width
+  output_config.col = vim.o.columns-M.width
+  error_config.col = vim.o.columns-M.width
+
+  output_config.minwidth = M.width
+  input_config.minwidth = M.width
+  error_config.minwidth = M.width
+
+
+  output_config.minheight = math.floor(vim.o.lines/2) - 4
+  input_config.minheight = math.floor(vim.o.lines/2) - 4
+  error_config.minheight = math.floor(vim.o.lines/2) - 4
+
+
+  output_config.maxheight = math.floor(vim.o.lines/2) - 4
+  input_config.maxheight = math.floor(vim.o.lines/2) - 4
+  error_config.maxheight = math.floor(vim.o.lines/2) - 4
+
+  output_config.line = math.floor(vim.o.lines/2)+1
+  error_config.line = math.floor(vim.o.lines/2)+1
+
   M.active = true
+
   local bufin = vim.api.nvim_create_buf(false, false)
   local bufout = vim.api.nvim_create_buf(false, false)
   local buferr = vim.api.nvim_create_buf(false, false)

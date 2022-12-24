@@ -16,6 +16,7 @@ function M.create_plenary_win(bufnr, title, config, main_win)
       col = config.col or 0,
       minwidth = config.minwidth or 0,
       minheight = config.minheight or 0,
+      maxheight = config.maxheight or 0,
       borderchars = borderchars,
     })
   if title ~= "Configuration" then
