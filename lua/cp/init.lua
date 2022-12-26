@@ -1,8 +1,17 @@
 local utils = require("cp.utils")
 local runner = require("cp.run")
 
+-- telescope requires
+local builtin = require("telescope.builtin")
+local pickers = require("telescope.pickers")
+local finders = require("telescope.finders")
+local config = require("telescope.config").values
+local actions = require "telescope.actions"
+local action_state = require "telescope.actions.state"
+
 local M = {}
 M.active = false
+M.current_buildsystem = nil
 
 function M.focus_main()
   vim.api.nvim_set_current_win(M.main_win)
@@ -15,13 +24,10 @@ local output_config = { line=33.5, col=vim.o.columns-M.width, minwidth=M.width, 
 local error_config = { line=33.5, col=vim.o.columns-M.width, minwidth=M.width, minheight=13, maxheight=13}
 
 function M.setup()
-
   if M.active then
     M.show_all()
     return
   end
-
-  M.width = 43
 
   input_config.col = vim.o.columns-M.width
   output_config.col = vim.o.columns-M.width
@@ -98,10 +104,57 @@ function M.show_all()
   end
 end
 
+local function maximize_output()
+  local itr = 0
+  local call_back = {}
+  if vim.api.nvim_win_is_valid(M.output.win_id) then
+    M.toggle_output()
+    table.insert(call_back, M.toggle_output)
+  end
+  if vim.api.nvim_win_is_valid(M.error.win_id) then
+    M.toggle_error()
+    table.insert(call_back, M.toggle_error)
+  end
+  output_config.line = 2
+  error_config.line = 2
+  output_config.minheight = vim.o.lines - 4
+  error_config.minheight = vim.o.lines - 4
+  output_config.maxheight = vim.o.lines - 4
+  error_config.maxheight = vim.o.lines - 4
+  for _, v in pairs(call_back) do
+    v()
+  end
+end
+
+local function minimize_output()
+  local to_change = {output_config, error_config}
+  local itr = 0
+  local call_back = {}
+  if vim.api.nvim_win_is_valid(M.output.win_id) then
+    M.toggle_output()
+    table.insert(call_back, M.toggle_output)
+  end
+  if vim.api.nvim_win_is_valid(M.error.win_id) then
+    M.toggle_error()
+    table.insert(call_back, M.toggle_error)
+  end
+  output_config.line = math.floor(vim.o.lines/2)+1
+  error_config.line = math.floor(vim.o.lines/2)+1
+  output_config.minheight = math.floor(vim.o.lines / 2) - 4
+  error_config.minheight = math.floor(vim.o.lines / 2) - 4
+  output_config.maxheight = math.floor(vim.o.lines / 2 ) - 4
+  error_config.maxheight = math.floor(vim.o.lines / 2) - 4
+  for _, v in pairs(call_back) do
+    v()
+  end
+end
+
 function M.toggle_input()
   if vim.api.nvim_win_is_valid(M.input.win_id) then
     vim.api.nvim_win_close(M.input.win_id, true)
+    maximize_output()
   else
+    minimize_output()
     M.input = utils.create_plenary_win(M.input.bufnr, "Input Block", input_config, M.main_win)
   end
 end
@@ -144,7 +197,7 @@ function M.focus_error()
 end
 
 function M.run()
-  local filetype = vim.bo.filetype
+  local filetype = M.current_buildsystem or vim.bo.filetype
   local path = vim.api.nvim_buf_get_name(0)
   local filename = utils.get_file_name(path)
   runner.run(filetype, filename, {input_bufnr=M.input.bufnr, output_bufnr = M.output.bufnr, error_bufnr=M.error.bufnr})
@@ -192,6 +245,30 @@ function M.get_file_contents(path)
   end
   file:close()
   return content
+end
+
+function M.change_buildsystem()
+  runner.init_buildsystem()
+  local opts = {}
+  local systems = {}
+  for k, _ in pairs(runner.get_buildsystem()) do
+    table.insert(systems, k)
+  end
+  pickers.new(opts, {
+      prompt_title = "Select a buildsystem",
+      finder = finders.new_table {
+        results = systems
+      },
+      sorter = config.generic_sorter(opts),
+      attach_mappings = function (prompt_bufnr, map)
+        actions.select_default:replace(function()
+          actions.close(prompt_bufnr)
+          local selection = action_state.get_selected_entry()
+          M.current_buildsystem = selection[1]
+        end)
+        return true
+      end
+    }):find()
 end
 
 return M

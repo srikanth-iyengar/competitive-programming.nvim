@@ -1,4 +1,5 @@
 local M = {}
+local buildsystem = {}
 
 local cp_config = string.format("%s/cp_utils.json", vim.fn.stdpath("data"))
 
@@ -12,7 +13,7 @@ function M.init_buildsystem()
   end
   local content = config_file:read('*a')
   config_file:close()
-  M = vim.fn.json_decode(content)
+  buildsystem = vim.fn.json_decode(content)
 end
 
 function Get_base_file(filename)
@@ -30,23 +31,19 @@ function Get_base_file(filename)
 end
 
 function M.get_buildsystem()
-  for _, v in pairs(M) do
-    if type(v) == "table" then
-      print(v)
-    end
-  end
+  return buildsystem
 end
 
 function M.run(filetype, filename, configuration)
-  if M[filetype] == nil then
+  if buildsystem[filetype] == nil then
     print('Build system not found')
     return
   end
   local base_fname = Get_base_file(filename)
   local commands = {}
   local itr = 1
-  while M[filetype][itr] ~= nil do
-    commands[itr] = M[filetype][itr]
+  while buildsystem[filetype][itr] ~= nil do
+    commands[itr] = buildsystem[filetype][itr]
     itr = itr + 1
   end
   for i = 1, itr-1, 1 do
@@ -68,7 +65,7 @@ function M.run(filetype, filename, configuration)
 end
 
 function Run_command(command, configuration, call_back)
-  local input = "hello"
+  local input = ""
   if configuration.input_bufnr then
     input = ""
     for _, v in pairs(vim.api.nvim_buf_get_lines(configuration.input_bufnr, 0, -1, false)) do
