@@ -30,7 +30,7 @@ function Get_base_file(filename)
   return filename:sub(0, -filename:len() + l)
 end
 
-function M.Get_file_dir(filename)
+function Get_file_dir(filename)
   local len = string.len(filename)
 
   local f_dir_till = -1
