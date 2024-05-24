@@ -19,9 +19,9 @@ end
 
 M.width = 43
 
-local input_config = { line=2, col=vim.o.columns-M.width, minwidth=M.width, minheight=13, maxheight= 13}
-local output_config = { line=33.5, col=vim.o.columns-M.width, minwidth=M.width, minheight=13, maxheight=13 }
-local error_config = { line=33.5, col=vim.o.columns-M.width, minwidth=M.width, minheight=13, maxheight=13}
+local input_config = { line = 2, col = vim.o.columns - M.width, minwidth = M.width, minheight = 13, maxheight = 13 }
+local output_config = { line = 33.5, col = vim.o.columns - M.width, minwidth = M.width, minheight = 13, maxheight = 13 }
+local error_config = { line = 33.5, col = vim.o.columns - M.width, minwidth = M.width, minheight = 13, maxheight = 13 }
 
 function M.setup()
   if M.active then
@@ -29,26 +29,26 @@ function M.setup()
     return
   end
 
-  input_config.col = vim.o.columns-M.width
-  output_config.col = vim.o.columns-M.width
-  error_config.col = vim.o.columns-M.width
+  input_config.col = vim.o.columns - M.width
+  output_config.col = vim.o.columns - M.width
+  error_config.col = vim.o.columns - M.width
 
   output_config.minwidth = M.width
   input_config.minwidth = M.width
   error_config.minwidth = M.width
 
 
-  output_config.minheight = math.floor(vim.o.lines/2) - 4
-  input_config.minheight = math.floor(vim.o.lines/2) - 4
-  error_config.minheight = math.floor(vim.o.lines/2) - 4
+  output_config.minheight = math.floor(vim.o.lines / 2) - 4
+  input_config.minheight = math.floor(vim.o.lines / 2) - 4
+  error_config.minheight = math.floor(vim.o.lines / 2) - 4
 
 
-  output_config.maxheight = math.floor(vim.o.lines/2) - 4
-  input_config.maxheight = math.floor(vim.o.lines/2) - 4
-  error_config.maxheight = math.floor(vim.o.lines/2) - 4
+  output_config.maxheight = math.floor(vim.o.lines / 2) - 4
+  input_config.maxheight = math.floor(vim.o.lines / 2) - 4
+  error_config.maxheight = math.floor(vim.o.lines / 2) - 4
 
-  output_config.line = math.floor(vim.o.lines/2)+1
-  error_config.line = math.floor(vim.o.lines/2)+1
+  output_config.line = math.floor(vim.o.lines / 2) + 1
+  error_config.line = math.floor(vim.o.lines / 2) + 1
 
   M.active = true
 
@@ -70,7 +70,7 @@ function M.destroy()
         vim.api.nvim_win_close(v.win_id, true)
       end
       if vim.api.nvim_buf_is_valid(v.bufnr) then
-        vim.api.nvim_buf_delete(v.bufnr, {force=true})
+        vim.api.nvim_buf_delete(v.bufnr, { force = true })
       end
     end
   end
@@ -93,7 +93,8 @@ function M.show_all()
       if not vim.api.nvim_win_is_valid(v.win_id) then
         if k == "input" then
           M.toggle_input()
-        else if k == "output" then
+        else
+          if k == "output" then
             M.toggle_output()
           else
             M.toggle_error()
@@ -127,7 +128,7 @@ local function maximize_output()
 end
 
 local function minimize_output()
-  local to_change = {output_config, error_config}
+  local to_change = { output_config, error_config }
   local itr = 0
   local call_back = {}
   if vim.api.nvim_win_is_valid(M.output.win_id) then
@@ -138,11 +139,11 @@ local function minimize_output()
     M.toggle_error()
     table.insert(call_back, M.toggle_error)
   end
-  output_config.line = math.floor(vim.o.lines/2)+1
-  error_config.line = math.floor(vim.o.lines/2)+1
+  output_config.line = math.floor(vim.o.lines / 2) + 1
+  error_config.line = math.floor(vim.o.lines / 2) + 1
   output_config.minheight = math.floor(vim.o.lines / 2) - 4
   error_config.minheight = math.floor(vim.o.lines / 2) - 4
-  output_config.maxheight = math.floor(vim.o.lines / 2 ) - 4
+  output_config.maxheight = math.floor(vim.o.lines / 2) - 4
   error_config.maxheight = math.floor(vim.o.lines / 2) - 4
   for _, v in pairs(call_back) do
     v()
@@ -200,12 +201,13 @@ function M.run()
   local filetype = M.current_buildsystem or vim.bo.filetype
   local path = vim.api.nvim_buf_get_name(0)
   local filename = utils.get_file_name(path)
-  runner.run(filetype, filename, {input_bufnr=M.input.bufnr, output_bufnr = M.output.bufnr, error_bufnr=M.error.bufnr})
+  runner.run(filetype, filename, { input_bufnr = M.input.bufnr, output_bufnr = M.output.bufnr, error_bufnr = M.error
+  .bufnr }, path)
 end
 
 function M.change_width(delta)
   local open_win = {}
-  local configs = {input_config, output_config, error_config}
+  local configs = { input_config, output_config, error_config }
   if vim.api.nvim_win_is_valid(M.input.win_id) then
     M.toggle_input()
     table.insert(open_win, M.toggle_input)
@@ -219,15 +221,14 @@ function M.change_width(delta)
     table.insert(open_win, M.toggle_error)
   end
   M.width = M.width + delta
-  for i = 1,3,1 do
+  for i = 1, 3, 1 do
     configs[i].minwidth = M.width
     configs[i].col = vim.o.columns - M.width
   end
-  for _, v in pairs(open_win)do
+  for _, v in pairs(open_win) do
     v()
   end
 end
-
 
 function M.edit_config()
   vim.cmd("e " .. string.format("%s/cp_utils.json", vim.fn.stdpath("data")))
@@ -255,20 +256,20 @@ function M.change_buildsystem()
     table.insert(systems, k)
   end
   pickers.new(opts, {
-      prompt_title = "Select a buildsystem",
-      finder = finders.new_table {
-        results = systems
-      },
-      sorter = config.generic_sorter(opts),
-      attach_mappings = function (prompt_bufnr, map)
-        actions.select_default:replace(function()
-          actions.close(prompt_bufnr)
-          local selection = action_state.get_selected_entry()
-          M.current_buildsystem = selection[1]
-        end)
-        return true
-      end
-    }):find()
+    prompt_title = "Select a buildsystem",
+    finder = finders.new_table {
+      results = systems
+    },
+    sorter = config.generic_sorter(opts),
+    attach_mappings = function(prompt_bufnr, map)
+      actions.select_default:replace(function()
+        actions.close(prompt_bufnr)
+        local selection = action_state.get_selected_entry()
+        M.current_buildsystem = selection[1]
+      end)
+      return true
+    end
+  }):find()
 end
 
 return M

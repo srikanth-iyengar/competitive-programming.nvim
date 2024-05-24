@@ -48,13 +48,13 @@ function M.get_buildsystem()
   return buildsystem
 end
 
-function M.run(filetype, filename, configuration)
+function M.run(filetype, filename, configuration, path)
   if buildsystem[filetype] == nil then
     print('Build system not found')
     return
   end
   local base_fname = Get_base_file(filename)
-  local file_dir = Get_file_dir(filename)
+  local file_dir = Get_file_dir(path)
   local commands = {}
   local itr = 1
   while buildsystem[filetype][itr] ~= nil do
